@@ -19,7 +19,7 @@ jobs:
       - image: cimg/openjdk:17.0.1
     steps:
       - checkout
-      - run: mvn -f walking skeleton/services/service-producer/pom.xml clean package -DskipTests
+      - run: mvn -f walking\ skeleton/services/service-producer/pom.xml clean package -DskipTests
       - setup_remote_docker
       - checkout
       - docker/check
