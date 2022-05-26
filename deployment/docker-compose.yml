@@ -1,0 +1,315 @@
+version: '3.5'
+services:
+  frontend:
+    image: frontend:latest
+    hostname: frontend
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - stefan-front
+  gateway:
+    image: gateway:latest
+    hostname: gateway
+    restart: always
+    depends_on:
+      - discovery
+    ports:
+      - 8081:8081
+    networks:
+      - stefan-front
+      - stefan-back
+    environment: 
+      eureka.client.serviceUrl.defaultZone: http://discovery:8761/eureka/
+  discovery: 
+    image: discovery:latest
+    hostname: discovery
+    restart: always
+    ports:
+      - 8761:8761
+    networks:
+      - stefan-back
+    environment: 
+      eureka.instance.hostname: discovery
+      eureka.client.serviceUrl.defaultZone: http://discovery:8761/eureka/
+  service-account:
+    image: service-account:latest
+    hostname: service-account
+    restart: always
+    networks:
+      - stefan-back
+      - stefan-account_db
+    environment:
+      eureka.client.serviceUrl.defaultZone: http://discovery:8761/eureka/
+      spring.datasource.url: jdbc:postgresql://account_db:5432/account_db
+      spring.datasource.username: postgres
+      spring.datasource.password: password
+      spring.jpa.hibernate.ddl.auto: create
+    depends_on:
+      - account_db
+      - discovery
+  service-posts:
+    image: service-posts:latest
+    hostname: service-posts
+    restart: always
+    networks:
+      - stefan-back
+      - stefan-post_db
+    environment:
+      eureka.client.serviceUrl.defaultZone: http://discovery:8761/eureka/
+      spring.datasource.url: jdbc:postgresql://post_db:5432/post_db
+      spring.datasource.username: postgres
+      spring.datasource.password: password
+      spring.jpa.hibernate.ddl.auto: create
+    depends_on:
+      - post_db
+      - discovery
+  service-notifications:
+    image: service-notifications:latest
+    hostname: service-notifications
+    restart: always
+    networks:
+      - stefan-back
+      - stefan-notification_db
+    environment:
+      eureka.client.serviceUrl.defaultZone: http://discovery:8761/eureka/
+      spring.datasource.url: jdbc:postgresql://notification_db:5432/notification_db
+      spring.datasource.username: postgres
+      spring.datasource.password: password
+      spring.jpa.hibernate.ddl.auto: create
+    depends_on:
+      - notification_db
+      - discovery
+  service-administration:
+    image: service-administration:latest
+    hostname: service-administration
+    restart: always
+    environment:
+      eureka.client.serviceUrl.defaultZone: http://discovery:8761/eureka/
+    networks:
+      - stefan-back
+    depends_on:
+      - discovery
+  account_db:
+    image: 'postgres:13.1-alpine'
+    container_name: account_db
+    environment:
+      POSTGRES.USER: postgres
+      POSTGRES.PASSWORD: password
+      POSTGRES.DB: account_db
+    networks:
+      - stefan-account_db
+  post_db:
+    image: 'postgres:13.1-alpine'
+    container_name: post_db
+    environment:
+      POSTGRES.USER: postgres
+      POSTGRES.PASSWORD: password
+      POSTGRES.DB: post_db
+    networks:
+      - stefan-post_db
+  notification_db:
+    image: 'postgres:13.1-alpine'
+    container_name: notification_db
+    environment:
+      POSTGRES.USER: postgres
+      POSTGRES.PASSWORD: password
+      POSTGRES.DB: notification_db
+    networks:
+      - stefan-notification_db
+
+  #  ================================== Zookeeper ========================================== #}
+  zookeeper-1:
+    image: confluentinc/cp-zookeeper:6.0.1
+    container_name: zookeeper-1
+    hostname: zookeeper-1
+    ports:
+      - 2181:2181
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+    restart: unless-stopped
+    networks:
+      - stefan-back
+  #  ================================== Kafka ========================================== #}
+  kafka-1:
+    image: confluentinc/cp-kafka:6.0.1
+    container_name: kafka-1
+    hostname: kafka-1
+    depends_on:
+      - zookeeper-1
+    ports:
+      - 9092:9092
+      - 29092:29092
+      - 9992:9992
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_BROKER_RACK: r1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181
+      KAFKA_LISTENERS: LISTENER_INTERNAL://kafka-1:19092,LISTENER_DOCKERHOST://kafka-1:29092,LISTENER_EXTERNAL://kafka-1:9092
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_INTERNAL://kafka-1:19092,LISTENER_DOCKERHOST://localhost:29092,LISTENER_EXTERNAL://${PUBLIC_IP:-127.0.0.1}:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_INTERNAL:PLAINTEXT,LISTENER_DOCKERHOST:PLAINTEXT,LISTENER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_MESSAGE_TIMESTAMP_TYPE: CreateTime
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+      KAFKA_DELETE_TOPIC_ENABLE: 'True'
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'False'
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
+      KAFKA_JMX_PORT: 9992
+      KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.rmi.port=9992
+      KAFKA_JMX_HOSTNAME: ${PUBLIC_IP:-127.0.0.1}
+    volumes:
+      - ./data-transfer:/data-transfer
+    restart: unless-stopped
+    networks:
+      - stefan-back
+  kafka-2:
+    image: confluentinc/cp-kafka:6.0.1
+    container_name: kafka-2
+    hostname: kafka-2
+    depends_on:
+      - zookeeper-1
+    ports:
+      - 9093:9093
+      - 29093:29093
+      - 9993:9993
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_BROKER_RACK: r2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181
+      KAFKA_LISTENERS: LISTENER_INTERNAL://kafka-2:19093,LISTENER_DOCKERHOST://kafka-2:29093,LISTENER_EXTERNAL://kafka-2:9093
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_INTERNAL://kafka-2:19093,LISTENER_DOCKERHOST://localhost:29093,LISTENER_EXTERNAL://${PUBLIC_IP:-127.0.0.1}:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_INTERNAL:PLAINTEXT,LISTENER_DOCKERHOST:PLAINTEXT,LISTENER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_MESSAGE_TIMESTAMP_TYPE: CreateTime
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+      KAFKA_DELETE_TOPIC_ENABLE: 'True'
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'False'
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
+      KAFKA_JMX_PORT: 9993
+      KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.rmi.port=9993
+      KAFKA_JMX_HOSTNAME: ${PUBLIC_IP:-127.0.0.1}
+    volumes:
+      - ./data-transfer:/data-transfer
+    restart: unless-stopped
+    networks:
+      - stefan-back
+  kafka-3:
+    image: confluentinc/cp-kafka:6.0.1
+    container_name: kafka-3
+    hostname: kafka-3
+    depends_on:
+      - zookeeper-1
+    ports:
+      - 9094:9094
+      - 29094:29094
+      - 9994:9994
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_BROKER_RACK: r3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181
+      KAFKA_LISTENERS: LISTENER_INTERNAL://kafka-3:19094,LISTENER_DOCKERHOST://kafka-3:29094,LISTENER_EXTERNAL://kafka-3:9094
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_INTERNAL://kafka-3:19094,LISTENER_DOCKERHOST://localhost:29094,LISTENER_EXTERNAL://${PUBLIC_IP:-127.0.0.1}:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_INTERNAL:PLAINTEXT,LISTENER_DOCKERHOST:PLAINTEXT,LISTENER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_MESSAGE_TIMESTAMP_TYPE: CreateTime
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+      KAFKA_DELETE_TOPIC_ENABLE: 'True'
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'False'
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
+      KAFKA_JMX_PORT: 9994
+      KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.rmi.port=9994
+      KAFKA_JMX_HOSTNAME: ${PUBLIC_IP:-127.0.0.1}
+    volumes:
+      - ./data-transfer:/data-transfer
+    restart: unless-stopped
+    networks:
+      - stefan-back
+  kafka-manager:
+    image: trivadis/kafka-manager:latest
+    container_name: kafka-manager
+    hostname: kafka-manager
+    labels:
+      com.mdps.service.webui.url: http://${PUBLIC_IP}:28038
+    depends_on:
+      - zookeeper-1
+      - kafka-1
+    ports:
+      - 28044:9000
+    environment:
+      ZK_HOSTS: zookeeper-1:2181
+      APPLICATION_SECRET: abc123!
+    restart: unless-stopped
+    networks:
+      - stefan-back
+  #  ================================== Kafkacat  ========================================== #
+  kafkacat:
+    image: edenhill/kafkacat:1.6.0
+    container_name: kafkacat
+    hostname: kafkacat
+    volumes:
+      - ./data-transfer:/data-transfer
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        apk add jq;
+        while [ 1 -eq 1 ];do sleep 60;done
+    restart: unless-stopped
+    networks:
+      - stefan-back
+  #  ================================== Apache Kafka HQ (AKHQ) ========================================== #
+  akhq:
+    image: tchiotludo/akhq:latest
+    container_name: akhq
+    hostname: akhq
+    labels:
+      com.platys.webui.title: Apache Kafka AQ UI
+      com.platys.webui.url: http://${PUBLIC_IP}:28042
+    ports:
+      - 28042:8080
+    environment:
+      AKHQ_CONFIGURATION: |
+        akhq:
+          connections:
+            docker-kafka-server:
+              properties:
+                bootstrap.servers: 'kafka-1:19092,kafka-2:19093,kafka-3:19094'
+              # schema-registry:
+              #   url: "http://schema-registry-1:8081"
+              # connect:
+              #   - name: "kafka-connect-1"
+              #     url: "http://kafka-connect-1:8083"
+              #   - name: "kafka-connect-2"
+              #     url: "http://kafka-connect-1:8084"
+    depends_on:
+      - kafka-1
+    volumes:
+      - ./data-transfer:/data-transfer
+    restart: unless-stopped
+    networks:
+      - stefan-back
+  
+networks:
+  stefan-back:
+    driver: bridge
+  stefan-front:
+    driver: bridge
+  stefan-post_db:
+    driver: bridge
+  stefan-notification_db:
+    driver: bridge
+  stefan-account_db:
+    driver: bridge

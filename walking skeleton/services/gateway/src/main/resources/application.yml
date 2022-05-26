@@ -1,0 +1,26 @@
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedHeaders: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+      routes:
+      - id: producer
+        uri: http://producer:8082
+        predicates:
+        - Path=/gateway/producer/**
+        filters:
+        - RewritePath=/gateway/producer/(?<segment>.*),/producer/$\{segment}
+      - id: consumer
+        uri: http://consumer:8083
+        predicates:
+        - Path=/gateway/consumer/**
+        filters:
+        - RewritePath=/gateway/consumer/(?<segment>.*),/consumer/$\{segment}

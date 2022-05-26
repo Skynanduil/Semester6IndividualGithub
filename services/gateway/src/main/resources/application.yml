@@ -1,0 +1,21 @@
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:3000"
+      routes:
+        - id: service-account
+          uri: http://service-account:8082
+          predicates:
+            - Path=/account/**
+        - id: service-posts
+          #uri: http://service-posts:8083
+          uri: http://localhost:8083
+          predicates:
+            - Path=/post/**, /reply/**
+        - id: service-administration
+          uri: http://service-administration:8085
+          predicates:
+            - Path=/admin/account/**, /admin/post/**, /admin/reply/**

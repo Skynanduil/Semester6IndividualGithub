@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kafka-3
+  name: kafka-3
+spec:
+  ports:
+    - protocol: TCP
+      port: 9094
+      targetPort: 9094
+  selector:
+    app: kafka-3
