@@ -1,26 +1,43 @@
-# Use the latest 2.1 version of CircleCI pipeline process engine.
-# See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
-# Define a job to be invoked later in a workflow.
-# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
+orbs:
+  maven: circleci/maven@1.0.3
+  docker: circleci/docker@1
+  k8s: digitalocean/k8s@0.1.1
+
 jobs:
-  say-hello:
-    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
-    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
-    docker:
-      - image: cimg/base:stable
-    # Add steps to the job
-    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
+  mvn-build:
+    executor: maven/default
     steps:
       - checkout
       - run:
-          name: "Say hello"
-          command: "echo Hello, World!"
+          name: maven build producer service
+          command: mvn -f walking-skeleton/services/service-producer/pom.xml test
+  
+  dockerhub-deploy:
+    docker:
+      - image: cimg/openjdk:17.0.1
+    steps:
+      - checkout
+      - run: mvn -f walking-skeleton/services/service-producer/pom.xml clean package -DskipTests
+      - setup_remote_docker
+      - checkout
+      - docker/check
+      - run: mvn compile jib:dockerBuild -Djib.to.auth.username=${DOCKER_USER} -Djib.to.auth.password=${DOCKER_PASSWORD} -Djib.to.image=${DOCKER_USER}/skeleton-service-producer -Djib.to.tags=$CIRCLE_SHA1
+      - docker/push: 
+          image: ${DOCKER_USER}/skeleton-service-producer
+          tag: "latest,$CIRCLE_SHA1"
 
-# Invoke jobs via workflows
-# See: https://circleci.com/docs/2.0/configuration-reference/#workflows
+
+
 workflows:
-  say-hello-workflow:
+  build-and-publish:
     jobs:
-      - say-hello
+      - build
+      - dockerhub-deploy:
+        requires:
+          - build
+#        filters:
+#          branches:
+#            only:
+#              - main
