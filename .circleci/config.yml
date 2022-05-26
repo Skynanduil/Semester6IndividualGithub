@@ -12,7 +12,7 @@ jobs:
       - checkout
       - run:
           name: maven build producer service
-          command: mvn -f walking-skeleton/services/service-producer/pom.xml test
+          command: mvn -f ./walking-skeleton/services/service-producer/pom.xml test
   
   dockerhub-deploy:
     docker:
