@@ -33,7 +33,7 @@ jobs:
 workflows:
   build-and-publish:
     jobs:
-      - build
+      - mvn-build
       - dockerhub-deploy:
         requires:
           - build
