@@ -12,7 +12,7 @@ jobs:
       - checkout
       - run:
           name: maven build producer service
-          command: mvn -f walking\ skeleton/services/service-producer/pom.xml test
+          command: mvn -f walking\ skeleton/services/service-producer/pom.xml clean package -DskipTests
   
   dockerhub-deploy:
     docker:
@@ -23,9 +23,9 @@ jobs:
       - setup_remote_docker
       - checkout
       - docker/check
-      - run: mvn compile jib:dockerBuild -Djib.to.auth.username=${DOCKER_USER} -Djib.to.auth.password=${DOCKER_PASSWORD} -Djib.to.image=${DOCKER_USER}/skeleton-service-producer -Djib.to.tags=$CIRCLE_SHA1
+      - run: mvn compile jib:dockerBuild -Djib.to.auth.username=$DOCKER_USER -Djib.to.auth.password=${DOCKER_PASSWORD} -Djib.to.image=$DOCKER_USER/skeleton-service-producer -Djib.to.tags=$CIRCLE_SHA1
       - docker/push: 
-          image: ${DOCKER_USER}/skeleton-service-producer
+          image: $DOCKER_USER/skeleton-service-producer
           tag: "latest,$CIRCLE_SHA1"
 
 workflows:
