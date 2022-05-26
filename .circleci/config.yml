@@ -35,9 +35,5 @@ workflows:
     jobs:
       - mvn-build
       - dockerhub-deploy:
-        requires:
-          - build
-#        filters:
-#          branches:
-#            only:
-#              - main
+          requires:
+            - mvn-build
