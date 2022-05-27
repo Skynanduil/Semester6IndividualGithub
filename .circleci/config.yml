@@ -13,7 +13,7 @@ jobs:
       - checkout
       - run:
           name: maven build producer service
-          command: mvn -f walking\ skeleton/services/service-producer/pom.xml clean package
+          command: mvn -f walking\ skeleton/services/service-producer/pom.xml clean package -DskipTests
       - run:
           name: generate sonar cloud report for producer
           command: mvn -f walking\ skeleton/services/service-producer/pom.xml verify sonar:sonar -Dsonar.projectKey=Skynanduil_Semester6IndividualGithub -DskipTests
