@@ -72,7 +72,7 @@ jobs:
 workflows:
   build-and-publish:
     jobs:
-      - mvn-build
+      - mvn-build:
           context: SonarCloud
       - npm-build
       - dockerhub-deploy:
