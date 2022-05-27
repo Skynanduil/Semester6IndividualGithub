@@ -15,6 +15,9 @@ jobs:
           name: maven build producer service
           command: mvn -f walking\ skeleton/services/service-producer/pom.xml clean package -DskipTests
       - run:
+          name: generate sonar cloud report
+          command: mvn verify sonar:sonar -Dsonar.projectKey=Skynanduil_Semester6IndividualGithub
+      - run:
           name: maven build consumer service
           command: mvn -f walking\ skeleton/services/service-consumer/pom.xml clean package -DskipTests
       - run:
@@ -70,6 +73,7 @@ workflows:
   build-and-publish:
     jobs:
       - mvn-build
+          context: SonarCloud
       - npm-build
       - dockerhub-deploy:
           requires:
