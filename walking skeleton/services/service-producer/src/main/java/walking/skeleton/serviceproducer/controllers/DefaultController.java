@@ -31,7 +31,6 @@ public class DefaultController{
 
     @PostMapping("/produce")
     public ResponseEntity<Void> produceMessage(@RequestParam String message){
-
         ListenableFuture<SendResult<String, String>> future = kafkaTemplate.send(topicName, message);
         future.addCallback(new ListenableFutureCallback<SendResult<String,String>>() {
             @Override
