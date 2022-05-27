@@ -52,7 +52,7 @@ jobs:
           image: $DOCKER_USER/skeleton-frontend
           path: walking\ skeleton/services/frontend
           docker-context: walking\ skeleton/services/frontend
-          tag: $CIRCLE_SHA1
+          tag: "latest,$CIRCLE_SHA1"
       - docker/push: 
           image: $DOCKER_USER/skeleton-service-producer
           tag: "latest,$CIRCLE_SHA1"
