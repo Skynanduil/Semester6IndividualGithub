@@ -29,10 +29,10 @@ jobs:
         pkg-manager: npm
       - run:
           name: npm install and test
-          command: npm -f walking\ skeleton/services/frontend/package-lock.json cit
+          command: npm --prefix walking\ skeleton/services/frontend/package-lock.json cit
       - run: 
           name: npm build frontend
-          command: npm -f walking\ skeleton/services/frontend/package-lock.json build
+          command: npm --prefix walking\ skeleton/services/frontend/package-lock.json build
 
   dockerhub-deploy:
     docker:
