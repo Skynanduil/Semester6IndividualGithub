@@ -39,9 +39,20 @@ jobs:
       - setup_remote_docker
       - checkout
       - docker/check
-      - run: mvn -f walking\ skeleton/services/service-producer/pom.xml compile jib:dockerBuild -Djib.to.image=$DOCKER_USER/skeleton-service-producer -Djib.to.tags=$CIRCLE_SHA1
-      - run: mvn -f walking\ skeleton/services/service-consumer/pom.xml compile jib:dockerBuild -Djib.to.image=$DOCKER_USER/skeleton-service-consumer -Djib.to.tags=$CIRCLE_SHA1
-      - run: mvn -f walking\ skeleton/services/gateway/pom.xml compile jib:dockerBuild -Djib.to.image=$DOCKER_USER/skeleton-gateway -Djib.to.tags=$CIRCLE_SHA1
+      - run:
+          name: build image $DOCKER_USER/skeleton-service-producer
+          command: mvn -f walking\ skeleton/services/service-producer/pom.xml compile jib:dockerBuild -Djib.to.image=$DOCKER_USER/skeleton-service-producer -Djib.to.tags=$CIRCLE_SHA1
+      - run: 
+          name: build image $DOCKER_USER/skeleton-service-consumer
+          command: mvn -f walking\ skeleton/services/service-consumer/pom.xml compile jib:dockerBuild -Djib.to.image=$DOCKER_USER/skeleton-service-consumer -Djib.to.tags=$CIRCLE_SHA1
+      - run: 
+          name: build image $DOCKER_USER/skeleton-gateway
+          command: mvn -f walking\ skeleton/services/gateway/pom.xml compile jib:dockerBuild -Djib.to.image=$DOCKER_USER/skeleton-gateway -Djib.to.tags=$CIRCLE_SHA1
+      - docker/build:
+          image: $DOCKER_USER/skeleton-frontend
+          path: walking\ skeleton/services/frontend
+          docker-context: walking\ skeleton/services/frontend
+          tag: $CIRCLE_SHA1
       - docker/push: 
           image: $DOCKER_USER/skeleton-service-producer
           tag: "latest,$CIRCLE_SHA1"
@@ -50,6 +61,9 @@ jobs:
           tag: "latest,$CIRCLE_SHA1"
       - docker/push: 
           image: $DOCKER_USER/skeleton-gateway
+          tag: "latest,$CIRCLE_SHA1"
+      - docker/push:
+          image: $DOCKER_USER/skeleton-frontend
           tag: "latest,$CIRCLE_SHA1"
 
 workflows:
