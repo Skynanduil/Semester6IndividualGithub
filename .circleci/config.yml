@@ -30,7 +30,7 @@ jobs:
           command: npm --prefix walking\ skeleton/services/frontend/ cit
       - run: 
           name: npm build frontend
-          command: npm --prefix walking\ skeleton/services/frontend/ build
+          command: npm --prefix walking\ skeleton/services/frontend/ run build
 
   dockerhub-deploy:
     docker:
