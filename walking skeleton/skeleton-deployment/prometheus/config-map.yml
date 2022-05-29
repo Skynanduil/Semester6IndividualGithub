@@ -416,14 +416,14 @@ data:
         scrape_interval: 10s
         metrics_path: /actuator/prometheus
         static_configs:
-          - targets: ['gateway:8081']
+          - targets: ['gateway.default.svc:8081']
       - job_name: 'producer'
         scrape_interval: 5s
         metrics_path: /producer/actuator/prometheus
         static_configs:
-          - targets: ['gateway:8081']
+          - targets: ['gateway.default.svc:8081']
       - job_name: 'consumer'
         scrape_interval: 5s
         metrics_path: /consumer/actuator/prometheus
         static_configs:
-          - targets: ['gateway:8081']
+          - targets: ['gateway.default.svc:8081']
