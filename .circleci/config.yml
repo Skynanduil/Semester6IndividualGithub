@@ -78,16 +78,16 @@ jobs:
           cluster: k8s-1-22-8-do-1-ams3-1653407254093
       - run:
           name: kubernetes rolling update producer
-          command: kubectl set image deployments/producer producer=docker.io/$DOCKER_USER/skeleton-service-producer:$CIRLCE_SHA1 -n default
+          command: kubectl set image deployments/producer producer=$DOCKER_USER/skeleton-service-producer:$CIRLCE_SHA1 -n default
       - run:
           name: kubernetes rolling update consumer
-          command: kubectl set image deployments/consumer consumer=docker.io/$DOCKER_USER/skeleton-service-consumer:$CIRLCE_SHA1 -n default
+          command: kubectl set image deployments/consumer consumer=$DOCKER_USER/skeleton-service-consumer:$CIRLCE_SHA1 -n default
       - run:
           name: kubernetes rolling update gateway
-          command: kubectl set image deployments/gateway gateway=docker.io/$DOCKER_USER/skeleton-gateway:$CIRLCE_SHA1 -n default
+          command: kubectl set image deployments/gateway gateway=$DOCKER_USER/skeleton-gateway:$CIRLCE_SHA1 -n default
       - run:
           name: kubernetes rolling update frontend
-          command: kubectl set image deployments/frontend frontend=docker.io/$DOCKER_USER/skeleton-frontend:$CIRLCE_SHA1 -n default
+          command: kubectl set image deployments/frontend frontend=$DOCKER_USER/skeleton-frontend:$CIRLCE_SHA1 -n default
 
 
 workflows:
