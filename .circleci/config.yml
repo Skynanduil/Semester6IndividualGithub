@@ -21,9 +21,6 @@ jobs:
           name: maven build consumer service
           command: mvn -f walking\ skeleton/services/service-consumer/pom.xml clean package -DskipTests
       - run:
-          name: generate sonar cloud report for consumer
-          command: mvn -f walking\ skeleton/services/service-consumer/pom.xml verify sonar:sonar -Dsonar.projectKey=Skynanduil_Semester6IndividualGithub -DskipTests
-      - run:
           name: maven build gateway
           command: mvn -f walking\ skeleton/services/gateway/pom.xml clean package -DskipTests
 
@@ -72,6 +69,27 @@ jobs:
           image: $DOCKER_USER/skeleton-frontend
           tag: "latest,$CIRCLE_SHA1"
 
+  kubernetes-deploy:
+    executor: docker/docker
+    steps:
+      - checkout
+      - k8s/install
+      - k8s/initialize:
+          cluster: k8s-1-22-8-do-1-ams3-1653407254093
+      - run:
+          name: kubernetes rolling update producer
+          command: kubectl set image deployments/producer producer=docker.io/$DOCKER_USER/skeleton-service-producer:$CIRLCE_SHA1 -n default
+      - run:
+          name: kubernetes rolling update consumer
+          command: kubectl set image deployments/consumer consumer=docker.io/$DOCKER_USER/skeleton-service-consumer:$CIRLCE_SHA1 -n default
+      - run:
+          name: kubernetes rolling update gateway
+          command: kubectl set image deployments/gateway gateway=docker.io/$DOCKER_USER/skeleton-gateway:$CIRLCE_SHA1 -n default
+      - run:
+          name: kubernetes rolling update frontend
+          command: kubectl set image deployments/frontend frontend=docker.io/$DOCKER_USER/skeleton-frontend:$CIRLCE_SHA1 -n default
+
+
 workflows:
   build-and-publish:
     jobs:
@@ -82,3 +100,14 @@ workflows:
           requires:
             - mvn-build
             - npm-build
+          filters:
+            branches: 
+              only:
+                - main
+      - kubernetes-deploy:
+          requires:
+            - dockerhub-deploy
+          filters:
+            branches:
+              only:
+                - main
