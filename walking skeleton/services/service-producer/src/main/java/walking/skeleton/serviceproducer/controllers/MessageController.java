@@ -29,21 +29,21 @@ public class MessageController {
     public ResponseEntity<MessageDTO> createMessage(@RequestBody MessageDTO message){
         logger.info(String.format("Attempting to create message with Title [%1$s] and content [%2$s]", message.getTitle(), message.getContent()));
         MessageDTO createdMessage = new MessageDTO(messageService.createMessage(message));
-        return new ResponseEntity<MessageDTO>(createdMessage, HttpStatus.CREATED);
+        return new ResponseEntity<>(createdMessage, HttpStatus.CREATED);
     }
 
     @GetMapping(value = "/{id}")
     public ResponseEntity<MessageDTO> getMessage(@PathVariable UUID id) throws MessageNotFoundException {
         logger.info(String.format("Attempting to retrieve message with ID [%s]", id));
         MessageDTO foundMessage = new MessageDTO(messageService.getMessageById(id));
-        return new ResponseEntity<MessageDTO>(foundMessage, HttpStatus.OK);
+        return new ResponseEntity<>(foundMessage, HttpStatus.OK);
     }
 
     @PutMapping(value = "/edit", consumes = "application/json")
     public ResponseEntity<MessageDTO> editMessage(@RequestBody MessageDTO message) throws MessageNotFoundException {
         logger.info(String.format("Attempting to edit message with ID [%1$s].\nThe new title is [%2$s] and the new content is [%3$s].", message.getId(), message.getTitle(), message.getContent()));
         MessageDTO editedMessage = new MessageDTO(messageService.editMessage(message));
-        return new ResponseEntity<MessageDTO>(editedMessage, HttpStatus.OK);
+        return new ResponseEntity<>(editedMessage, HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/{id}")
