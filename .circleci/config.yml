@@ -37,7 +37,8 @@ jobs:
           command: npm --prefix walking\ skeleton/services/frontend/ run build
 
   loadtest:
-    script: walking\ skeleton/stress\ testing/test.js
+    - grafana/k6:
+        script: walking\ skeleton/stress\ testing/test.js
 
   dockerhub-deploy:
     docker:
