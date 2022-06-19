@@ -14,7 +14,7 @@ class FAAS extends React.Component{
         getFunctionCalledCountFromFAAS().then(
             res => {
                 alert(res.data.message);
-                this.state.count = res.data.count;
+                this.setState({count: res.data.count})
             }
         );
     }
