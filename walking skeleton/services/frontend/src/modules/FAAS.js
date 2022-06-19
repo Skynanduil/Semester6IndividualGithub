@@ -1,5 +1,5 @@
 import React from "react";
-import getFunctionCalledCountFromFAAS from '../api/FAAS_API_CALLS'
+import {getFunctionCalledCountFromFAAS} from '../api/FAAS_API_CALLS'
 
 class FAAS extends React.Component{
     constructor(props){
