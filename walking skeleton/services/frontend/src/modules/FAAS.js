@@ -28,3 +28,5 @@ class FAAS extends React.Component{
         )
     }
 }
+
+export default FAAS;
