@@ -36,6 +36,9 @@ jobs:
           name: npm build frontend
           command: npm --prefix walking\ skeleton/services/frontend/ run build
 
+  loadtest:
+    script: walking\ skeleton/stress\ testing/test.js
+
   dockerhub-deploy:
     docker:
       - image: cimg/openjdk:17.0.1
@@ -90,9 +93,6 @@ jobs:
           name: kubernetes rolling update frontend
           command: kubectl set image deployments/frontend frontend=$DOCKER_USER/skeleton-frontend:$CIRCLE_SHA1 -n default
 
-  loadtest:
-    script: walking\ skeleton/stress\ testing/test.js
-
 workflows:
   build-and-publish:
     jobs:
@@ -104,7 +104,6 @@ workflows:
           requires:
             - mvn-build
             - npm-build
-            - loadtest
           filters:
             branches: 
               only:
