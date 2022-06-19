@@ -5,6 +5,7 @@ orbs:
   node: circleci/node@5.0.2
   docker: circleci/docker@1
   k8s: digitalocean/k8s@0.1.1
+  grafana: grafana/k6@1.1.3
 
 jobs:
   mvn-build:
@@ -89,6 +90,8 @@ jobs:
           name: kubernetes rolling update frontend
           command: kubectl set image deployments/frontend frontend=$DOCKER_USER/skeleton-frontend:$CIRCLE_SHA1 -n default
 
+  loadtest:
+    script: walking\ skeleton/stress\ testing/test.js
 
 workflows:
   build-and-publish:
@@ -96,10 +99,12 @@ workflows:
       - mvn-build:
           context: SonarCloud
       - npm-build
+      - loadtest
       - dockerhub-deploy:
           requires:
             - mvn-build
             - npm-build
+            - loadtest
           filters:
             branches: 
               only:
