@@ -1,24 +1,42 @@
 package walking.skeleton.serviceproducer.controllers;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 import walking.skeleton.serviceproducer.dto.MessageDTO;
-import walking.skeleton.serviceproducer.exceptions.MessageNotFoundException;
-import walking.skeleton.serviceproducer.models.Message;
-import walking.skeleton.serviceproducer.services.IMessageService;
+import walking.skeleton.serviceproducer.testutil.databaseutil;
+import walking.skeleton.serviceproducer.testutil.util;
 
 import java.util.UUID;
-import static org.assertj.core.api.Assertions.*;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @SpringBootTest
+@AutoConfigureMockMvc
 public class MessageControllerTest {
+    @Autowired
+    private WebApplicationContext webApplicationContext;
+
+    private MockMvc mockMvc;
+
+    @BeforeEach
+    public void setup() throws Exception {
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext).build();
+    }
+
+
     @Test
-    public void CreateMessage_Should_SendMessage_WithCorrectTitleAndContent(){
+    public void CreateMessage_Should_SendMessage_WithCorrectTitleAndContent() throws Exception {
         // Arrange
-        IMessageService testService = new TestService();
-        MessageController messageController = new MessageController(testService);
         MessageDTO messageSent = new MessageDTO();
         String testTitle = "Test Title";
         String testContent = "Test Content";
@@ -26,126 +44,86 @@ public class MessageControllerTest {
         messageSent.setContent(testContent);
 
         // Act
-        ResponseEntity<MessageDTO> result = messageController.createMessage(messageSent);
+        mockMvc.perform(post("/producer/message/create")
+                                .content(util.asJsonString(messageSent))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON))
 
-        // Assert
-        assertThat(result.getStatusCode())
-                .isEqualTo(HttpStatus.CREATED);
 
-        assertThat(result.getBody().getTitle())
-                .isNotNull()
-                .isEqualTo(testTitle);
-
-        assertThat(result.getBody().getContent())
-                .isNotNull()
-                .isEqualTo(testContent);
+                // Assert
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title").value(testTitle))
+                .andExpect(jsonPath("$.content").value(testContent));
     }
 
     @Test
-    public void GetMessage_Should_RetrieveMessage_WithCorrectId(){
+    public void GetMessage_Should_RetrieveMessage_WithCorrectId() throws Exception {
         // Arrange
-        IMessageService testService = new TestService();
-        MessageController messageController = new MessageController(testService);
-        UUID id = UUID.randomUUID();
-
-        // Act
-        try {
-            ResponseEntity<MessageDTO> result = messageController.getMessage(id);
-
-            // Assert
-            assertThat(result.getStatusCode())
-                    .isEqualTo(HttpStatus.OK);
-
-            assertThat(result.getBody().getId())
-                    .isNotNull()
-                    .isEqualTo(id);
-        } catch (MessageNotFoundException e) {
-            fail("MessageController.getMessage(" + id + ") threw exception: " + e.getMessage());
-        }
-    }
-
-    @Test
-    public void EditMessage_Should_EditMessage_WithCorrectTitleAndContent(){
-        // Arrange
-        IMessageService testService = new TestService();
-        MessageController messageController = new MessageController(testService);
-        MessageDTO messageSent = new MessageDTO();
+        MessageDTO message = new MessageDTO();
         String testTitle = "Test Title";
         String testContent = "Test Content";
-        messageSent.setTitle(testTitle);
-        messageSent.setContent(testContent);
+        message.setTitle(testTitle);
+        message.setContent(testContent);
+        MessageDTO messageInDatabase = databaseutil.post(message);
+        UUID id = messageInDatabase.getId();
 
         // Act
-        ResponseEntity<MessageDTO> result = null;
-        try {
-            result = messageController.editMessage(messageSent);
+        mockMvc.perform(get("/producer/message/" + id))
 
-            // Assert
-            assertThat(result.getStatusCode())
-                    .isEqualTo(HttpStatus.OK);
-
-            assertThat(result.getBody().getTitle())
-                    .isNotNull()
-                    .isEqualTo(testTitle);
-
-            assertThat(result.getBody().getContent())
-                    .isNotNull()
-                    .isEqualTo(testContent);
-        } catch (MessageNotFoundException e) {
-            fail("MessageController.editMessage(with title: " + testTitle + ", and content: " +testContent + ") threw exception: " + e.getMessage());
-        }
+                // Assert
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()))
+                .andExpect(jsonPath("$.title").value(testTitle))
+                .andExpect(jsonPath("$.content").value(testContent));
     }
 
     @Test
-    public void DeleteMessage_Should_OK(){
+    public void EditMessage_Should_EditMessage_WithCorrectTitleAndContent() throws Exception {
         // Arrange
-        IMessageService testService = new TestService();
-        MessageController messageController = new MessageController(testService);
-        UUID id = UUID.randomUUID();
+        MessageDTO message = new MessageDTO();
+        String testTitle = "Test Title";
+        String testContent = "Test Content";
+        message.setTitle(testTitle);
+        message.setContent(testContent);
+        MessageDTO messageInDatabase = databaseutil.post(message);
+        UUID id = messageInDatabase.getId();
+        String newTitle = "New Title";
+        String newContent = "New Content";
+        message.setId(id);
+        message.setTitle(newTitle);
+        message.setContent(newContent);
 
         // Act
-        try {
-            ResponseEntity<Void> result = messageController.deleteMessage(id);
+        mockMvc.perform(put("/producer/message/edit")
+                .content(util.asJsonString(message))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
 
-            // Assert
-            assertThat(result.getStatusCode())
-                    .isEqualTo(HttpStatus.OK);
-        } catch (MessageNotFoundException e) {
-            fail("MessageController.deleteMessage(" + id + ") threw exception: " + e.getMessage());
-        }
+                // Assert
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()))
+                .andExpect(jsonPath("$.title").value(newTitle))
+                .andExpect(jsonPath("$.content").value(newContent));
     }
 
-    private static class TestService implements IMessageService{
-        @Override
-        public Message createMessage(MessageDTO message) {
-            Message toReturn = new Message();
-            toReturn.setTitle(message.getTitle());
-            toReturn.setContent(message.getContent());
-            toReturn.setId(message.getId());
-            toReturn.setDatePublished(message.getDatePublished());
-            return toReturn;
-        }
+    @Test
+    public void DeleteMessage_Should_OK() throws Exception {
+        // Arrange
+        MessageDTO message = new MessageDTO();
+        String testTitle = "Test Title";
+        String testContent = "Test Content";
+        message.setTitle(testTitle);
+        message.setContent(testContent);
+        MessageDTO messageInDatabase = databaseutil.post(message);
+        UUID id = messageInDatabase.getId();
 
-        @Override
-        public Message getMessageById(UUID id) throws MessageNotFoundException {
-            Message toReturn = new Message();
-            toReturn.setId(id);
-            return toReturn;
-        }
 
-        @Override
-        public Message editMessage(MessageDTO message) throws MessageNotFoundException {
-            Message toReturn = new Message();
-            toReturn.setTitle(message.getTitle());
-            toReturn.setContent(message.getContent());
-            toReturn.setId(message.getId());
-            toReturn.setDatePublished(message.getDatePublished());
-            return toReturn;
-        }
+        // Act
+        mockMvc.perform(delete("/producer/message/" + id))
 
-        @Override
-        public void deleteMessageById(UUID id) throws MessageNotFoundException {
-            // Do nothing.
-        }
+                // Assert
+                .andExpect(status().isOk());
+
+        assertThat(databaseutil.exists(id)).isFalse();
     }
 }

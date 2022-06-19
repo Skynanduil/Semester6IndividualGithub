@@ -26,7 +26,7 @@ public class DefaultController{
 
     @GetMapping("/static")
     public ResponseEntity<String> getStaticResponse(){
-        return new ResponseEntity<String>("This is a static response from the api", HttpStatus.OK);
+        return new ResponseEntity<>("This is a static response from the api", HttpStatus.OK);
     }
 
     @PostMapping("/produce")
@@ -43,6 +43,6 @@ public class DefaultController{
                 logger.error("Unable to send message=[" + message + "] due to : " + ex.getMessage());
             }
         });
-        return new ResponseEntity<Void>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

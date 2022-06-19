@@ -9,5 +9,4 @@ class ServiceProducerApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
 }

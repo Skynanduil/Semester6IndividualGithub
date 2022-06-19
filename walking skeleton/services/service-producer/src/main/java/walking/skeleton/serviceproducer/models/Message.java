@@ -15,7 +15,6 @@ public class Message {
     final static String TABLE_NAME = "message";
 
     @Id
-    @Type(type = "pg-uuid")
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "message_id", columnDefinition = "uuid")
     private UUID id;
