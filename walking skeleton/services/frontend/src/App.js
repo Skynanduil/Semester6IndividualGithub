@@ -5,6 +5,7 @@ import CreateMessage from "./modules/CreateMessage";
 import GetMessage from "./modules/GetMessage";
 import EditMessage from "./modules/EditMessage";
 import DeleteMessage from "./modules/DeleteMessage";
+import FAAS from "./modules/FAAS";
 
 function App() {
   return (
@@ -31,6 +32,10 @@ function App() {
               <h4>delete</h4>
               <DeleteMessage/>
               <hr/>
+          </div>
+          <div>
+            <h2>FAAS</h2>
+            <FAAS/>
           </div>
 
       </header>
