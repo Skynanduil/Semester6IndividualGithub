@@ -1,5 +1,5 @@
 import API from './API'
-import getAccesToken from '../auth/getAccesToken';
+import getAccessToken from '../auth/getAccesToken';
 
 const getAuthConfig = async () =>{
     let accessToken = await getAccessToken();

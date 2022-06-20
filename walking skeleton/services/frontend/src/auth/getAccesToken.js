@@ -1,7 +1,7 @@
 import React from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 
-const getAccesToken = async () =>{
+async function getAccessToken (){
     const { getAccessTokenSilently } = useAuth0();
     try {
         const accessToken = await getAccessTokenSilently({
@@ -15,4 +15,4 @@ const getAccesToken = async () =>{
     }
 }
 
-export default getAccesToken;
+export default getAccessToken;
