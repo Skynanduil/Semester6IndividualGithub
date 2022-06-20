@@ -39,12 +39,6 @@ function App() {
             <h2>FAAS</h2>
             <FAAS/>
           </div>
-          <div>
-            <h2>Auth0</h2>
-            <LoginButton/>
-            <LogoutButton/>
-          </div>
-
       </header>
     </div>
   );
