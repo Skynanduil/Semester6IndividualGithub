@@ -56,6 +56,8 @@ public class MessageControllerTest {
                 .andExpect(jsonPath("$.content").value(testContent));
     }
 
+    // Changes
+
     @Test
     public void GetMessage_Should_RetrieveMessage_WithCorrectId() throws Exception {
         // Arrange
