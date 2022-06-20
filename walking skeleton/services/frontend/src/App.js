@@ -6,8 +6,6 @@ import GetMessage from "./modules/GetMessage";
 import EditMessage from "./modules/EditMessage";
 import DeleteMessage from "./modules/DeleteMessage";
 import FAAS from "./modules/FAAS";
-import LoginButton from './modules/LoginButton';
-import LogoutButton from './modules/LogoutButton';
 
 function App() {
   return (
