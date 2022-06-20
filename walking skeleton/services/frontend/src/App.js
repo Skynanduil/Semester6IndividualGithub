@@ -6,6 +6,8 @@ import GetMessage from "./modules/GetMessage";
 import EditMessage from "./modules/EditMessage";
 import DeleteMessage from "./modules/DeleteMessage";
 import FAAS from "./modules/FAAS";
+import LoginButton from './modules/LoginButton';
+import LogoutButton from './modules/LogoutButton';
 
 function App() {
   return (
@@ -36,6 +38,11 @@ function App() {
           <div>
             <h2>FAAS</h2>
             <FAAS/>
+          </div>
+          <div>
+            <h2>Auth0</h2>
+            <LoginButton/>
+            <LogoutButton/>
           </div>
 
       </header>

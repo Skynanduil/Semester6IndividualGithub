@@ -1,15 +1,29 @@
 import API from './API'
+import getAccesToken from '../auth/getAccesToken';
+
+const getAuthConfig = async () =>{
+    let accessToken = await getAccessToken();
+    let config = {
+        headers: {
+            'Authorization': 'Bearer ' + accessToken
+        }
+    }
+
+    return config;
+}
 
 export function getStaticResponseFromAPI(){
     return API.get('/producer/static')
 }
 
 export function sendMessageToMessageBroker(message){
-    return API.post('/producer/produce?message=' + message)
+    let config = await getAuthConfig();
+    return API.post('/producer/produce?message=' + message, config);
 }
 
 export function createMessageInDB(title, content){
-    return API.post('/producer/message/create', {title: title, content: content})
+    let config = await getAuthConfig();
+    return API.post('/producer/message/create', {title: title, content: content}, config);
 }
 
 export function getMessageFromDB(id){
@@ -17,9 +31,11 @@ export function getMessageFromDB(id){
 }
 
 export function editMessageInDB(id, title, content){
-    return API.put('/producer/message/edit', {id: id, title: title, content: content})
+    let config = await getAuthConfig();
+    return API.put('/producer/message/edit', {id: id, title: title, content: content}, config);
 }
 
 export function deleteMessageInDB(id){
-    return API.delete('/producer/message/' + id)
+    let config = await getAuthConfig();
+    return API.delete('/producer/message/' + id, config);
 }
