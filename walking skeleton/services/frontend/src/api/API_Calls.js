@@ -16,12 +16,12 @@ export function getStaticResponseFromAPI(){
     return API.get('/producer/static')
 }
 
-export function sendMessageToMessageBroker(message){
+export async function sendMessageToMessageBroker(message){
     let config = await getAuthConfig();
     return API.post('/producer/produce?message=' + message, config);
 }
 
-export function createMessageInDB(title, content){
+export async function createMessageInDB(title, content){
     let config = await getAuthConfig();
     return API.post('/producer/message/create', {title: title, content: content}, config);
 }
@@ -30,12 +30,12 @@ export function getMessageFromDB(id){
     return API.get('/producer/message/' + id)
 }
 
-export function editMessageInDB(id, title, content){
+export async function editMessageInDB(id, title, content){
     let config = await getAuthConfig();
     return API.put('/producer/message/edit', {id: id, title: title, content: content}, config);
 }
 
-export function deleteMessageInDB(id){
+export async function deleteMessageInDB(id){
     let config = await getAuthConfig();
     return API.delete('/producer/message/' + id, config);
 }
